@@ -11,6 +11,7 @@ import com.bitwig.extension.controller.api.ControllerHost;
 import com.bitwig.extension.controller.api.CursorRemoteControlsPage;
 import com.bitwig.extension.controller.api.Device;
 import com.bitwig.extension.controller.api.DeviceBank;
+import com.bitwig.extension.controller.api.HardwareButton;
 import com.bitwig.extension.controller.api.HardwareSurface;
 import com.bitwig.extension.controller.api.MidiIn;
 import com.bitwig.extension.controller.api.TrackBank;
@@ -55,6 +56,7 @@ public class NanoKontrolExtension extends ControllerExtension
       final int knobCCScene1 = 14;
       final int faderCCScene1 = 2;
       // }
+      final int midiChannel = 0;
 
       // Loop over first 8 channels, assigning knob to first macro param and fader to level fader.
       IntStream.range(0, 8).forEach(channelIndex -> {
@@ -72,17 +74,21 @@ public class NanoKontrolExtension extends ControllerExtension
          // Assign the knob to the first macro control.
          final int paramIndex = 0;
          AbsoluteHardwareKnob knob = hardwareSurface.createAbsoluteHardwareKnob(format("KNOB__ch%d_%d", channelIndex, paramIndex));
-         final int midiChannel = 0;
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(midiChannel, knobCCScene1 + channelIndex));
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
 
          // Assign the fader to the channel volume.
-         // TODO: if there is a `Level` param in macro page, bind that instead (so can have pre-fader fx).
+         // TODO: if there is a `Level` param in macro page, bind that instead (so can have post-fader fx).
          AbsoluteHardwareKnob fader = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d", channelIndex));
          fader.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(midiChannel, faderCCScene1 + channelIndex));
          fader.setBinding(currentChannel.volume().value());
       });
 
+      // Assign play button to transport play/stop.
+      final int playButtonCC = 45;
+      HardwareButton playButton = hardwareSurface.createHardwareButton("PLAY");
+      playButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(midiChannel, playButtonCC, 127));
+      playButton.pressedAction().setBinding(host.createTransport().isPlaying().toggleAction());
    }
 
    @Override
