@@ -58,6 +58,12 @@ public class NanoKontrolExtension extends ControllerExtension
       // }
       final int midiChannel = 0;
 
+      // Assign play button to transport play/stop.
+      final int playButtonCC = 45;
+      HardwareButton playButton = hardwareSurface.createHardwareButton("PLAY");
+      playButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(midiChannel, playButtonCC, 127));
+      playButton.pressedAction().setBinding(host.createTransport().isPlaying().toggleAction());
+
       // Loop over first 8 channels, assigning knob to first macro param and fader to level fader.
       IntStream.range(0, 8).forEach(channelIndex -> {
          Channel currentChannel = tracks.getItemAt(channelIndex);
@@ -83,12 +89,6 @@ public class NanoKontrolExtension extends ControllerExtension
          fader.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(midiChannel, faderCCScene1 + channelIndex));
          fader.setBinding(currentChannel.volume().value());
       });
-
-      // Assign play button to transport play/stop.
-      final int playButtonCC = 45;
-      HardwareButton playButton = hardwareSurface.createHardwareButton("PLAY");
-      playButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(midiChannel, playButtonCC, 127));
-      playButton.pressedAction().setBinding(host.createTransport().isPlaying().toggleAction());
    }
 
    @Override
