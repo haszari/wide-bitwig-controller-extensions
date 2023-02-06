@@ -89,6 +89,22 @@ public class NanoKontrolExtension extends ControllerExtension
          fader.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(midiChannel, faderCCScene1 + channelIndex));
          fader.setBinding(currentChannel.volume().value());
       });
+
+      // Bind channel 9 to aux / receive 1.
+      TrackBank auxTracks = host.createEffectTrackBank(
+         1,
+         1
+      );
+      final int paramIndex = 0;
+      final int nanoChannel9Offset = 8;
+      Channel firstAux = auxTracks.getItemAt(0);
+      DeviceBank auxDevices = firstAux.createDeviceBank(1);
+      CursorRemoteControlsPage remoteControlsPage = auxDevices.getDevice(0).createCursorRemoteControlsPage(1);
+      AbsoluteHardwareKnob auxKnob = hardwareSurface.createAbsoluteHardwareKnob(format("KNOB__ch%d_%d", nanoChannel9Offset, 0));
+      auxKnob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(midiChannel, knobCCScene1 + nanoChannel9Offset));
+      auxKnob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
+
+
    }
 
    @Override
