@@ -41,7 +41,7 @@ public class NanoKontrolExtensionDefinition extends ControllerExtensionDefinitio
    @Override
    public String getHardwareVendor()
    {
-      return "Cartoon Beats";
+      return "Cartoon Beats Reality";
    }
 
    @Override
