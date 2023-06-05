@@ -14,6 +14,7 @@ import com.bitwig.extension.controller.api.DeviceBank;
 import com.bitwig.extension.controller.api.HardwareButton;
 import com.bitwig.extension.controller.api.HardwareSurface;
 import com.bitwig.extension.controller.api.MidiIn;
+import com.bitwig.extension.controller.api.SceneBank;
 import com.bitwig.extension.controller.api.TrackBank;
 import com.bitwig.extension.controller.api.Transport;
 import com.bitwig.extension.controller.ControllerExtension;
@@ -86,7 +87,29 @@ public class TraktorKontrolF1Extension extends ControllerExtension
          knob = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d_%d", channelIndex, paramIndex));
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(midiChannel, faderCCCh1 + channelIndex));
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
+
+
       });
+
+      SceneBank scenes = tracks.sceneBank();
+      scenes.setIndication(true);
+
+      // sync button triggers scene!
+      final int syncButtonCC = 12;
+      HardwareButton syncButton = hardwareSurface.createHardwareButton(format("SYNC_BUTTON"));
+      syncButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(midiChannel, syncButtonCC, 127));
+      syncButton.pressedAction().setBinding(scenes.getScene(0).launchAction());
+
+      // quant & reverse button nav scene!
+      final int quantButtonCC = 13;
+      HardwareButton quantButton = hardwareSurface.createHardwareButton(format("QUANT_BUTTON"));
+      quantButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(midiChannel, quantButtonCC, 127));
+      quantButton.pressedAction().setBinding(scenes.scrollBackwardsAction());
+      final int reverseButtonCC = 15;
+      HardwareButton reverseButton = hardwareSurface.createHardwareButton(format("REV_BUTTON"));
+      reverseButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(midiChannel, reverseButtonCC, 127));
+      reverseButton.pressedAction().setBinding(scenes.scrollForwardsAction());
+
 
    }
 
