@@ -69,7 +69,11 @@ public class TraktorKontrolF1Extension extends ControllerExtension
          Device device = channelDevices.getDevice(0);
          // Get the first page of macro controls.
          // Future: get a named "Perform" page if available.
-         CursorRemoteControlsPage remoteControlsPage = device.createCursorRemoteControlsPage(1);
+
+         final int maxParams = 8; // we'll have access to full page of 8 but only access knobs 1 and 5 (0/4)
+         // final String customName = "KontrolF1PerformPage";
+         // final String filter = "perf"; // Attempted to get access to `Perform` page but it didn't work
+         CursorRemoteControlsPage remoteControlsPage = device.createCursorRemoteControlsPage(maxParams);
 
          int paramIndex = 0;
          // Assign the knob to the first macro control.
@@ -78,10 +82,10 @@ public class TraktorKontrolF1Extension extends ControllerExtension
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
 
          // Assign the knob to the fifth macro control (first in bottom row).
-         // paramIndex = 5;
-         // knob = hardwareSurface.createAbsoluteHardwareKnob(format("KNOB__ch%d_%d", channelIndex, paramIndex));
-         // knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(midiChannel, faderCCCh1 + channelIndex));
-         // knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
+         paramIndex = 4;
+         knob = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d_%d", channelIndex, paramIndex));
+         knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(midiChannel, faderCCCh1 + channelIndex));
+         knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
       });
 
    }
