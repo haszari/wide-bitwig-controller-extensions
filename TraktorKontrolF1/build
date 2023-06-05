@@ -1,0 +1,2 @@
+#!/bin/bash
+mvn install && cp target/HelloWorld.bwextension ~/Documents/Bitwig\ Studio/Extensions/
