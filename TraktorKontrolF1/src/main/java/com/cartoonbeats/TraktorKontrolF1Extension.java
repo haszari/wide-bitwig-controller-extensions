@@ -16,7 +16,6 @@ import com.bitwig.extension.controller.api.DeviceBank;
 import com.bitwig.extension.controller.api.HardwareButton;
 import com.bitwig.extension.controller.api.HardwareSurface;
 import com.bitwig.extension.controller.api.MidiIn;
-import com.bitwig.extension.controller.api.SceneBank;
 import com.bitwig.extension.controller.api.Track;
 import com.bitwig.extension.controller.api.TrackBank;
 
@@ -83,44 +82,22 @@ public class TraktorKontrolF1Extension extends ControllerExtension
          knob = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d_%d", channelIndex, paramIndex));
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, faderCCCh1 + channelIndex));
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
-
-
       });
-
-      // Highlight which scene will be triggered by `SYNC` button.
-      SceneBank scenes = tracks.sceneBank();
-      scenes.setIndication(true);
 
       // Highlight which tracks are focused for performance params (and in future - clip launcher).
       Track track = tracks.getItemAt(0);
       ClipLauncherSlotBank clipLauncherSlotBank = track.clipLauncherSlotBank();
       clipLauncherSlotBank.setIndication(true);
 
-      // sync button triggers scene!
-      final int syncButtonCC = 12;
-      HardwareButton syncButton = hardwareSurface.createHardwareButton(format("SYNC_BUTTON"));
-      syncButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, syncButtonCC, 127));
-      syncButton.pressedAction().setBinding(scenes.getScene(0).launchAction());
-
-      // CAPTURE & TYPE buttons nav scene up/down.
+      // QUANT & CAPTURE buttons nav tracks left/right (page size 4).
+      final int quantButtonCC = 13;
+      HardwareButton quantButton = hardwareSurface.createHardwareButton(format("QUANT_BUTTON"));
+      quantButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, quantButtonCC, 127));
+      quantButton.pressedAction().setBinding(tracks.scrollPageBackwardsAction());
       final int captureButtonCC = 14;
       HardwareButton captureButton = hardwareSurface.createHardwareButton(format("CAPT_BUTTON"));
       captureButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, captureButtonCC, 127));
-      captureButton.pressedAction().setBinding(scenes.scrollBackwardsAction());
-      final int typeButtonCC = 16;
-      HardwareButton typeButton = hardwareSurface.createHardwareButton(format("TYPE_BUTTON"));
-      typeButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, typeButtonCC, 127));
-      typeButton.pressedAction().setBinding(scenes.scrollForwardsAction());
-
-      // SIZE & BROWSE buttons nav tracks left/right (page size 4).
-      final int sizeButtonCC = 17;
-      HardwareButton sizeButton = hardwareSurface.createHardwareButton(format("SIZE_BUTTON"));
-      sizeButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, sizeButtonCC, 127));
-      sizeButton.pressedAction().setBinding(tracks.scrollPageBackwardsAction());
-      final int browseButtonCC = 18;
-      HardwareButton browseButton = hardwareSurface.createHardwareButton(format("BROWSE_BUTTON"));
-      browseButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, browseButtonCC, 127));
-      browseButton.pressedAction().setBinding(tracks.scrollPageForwardsAction());
+      captureButton.pressedAction().setBinding(tracks.scrollPageForwardsAction());
 
    }
 
