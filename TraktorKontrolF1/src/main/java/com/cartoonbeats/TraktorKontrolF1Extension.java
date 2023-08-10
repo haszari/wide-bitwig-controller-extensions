@@ -5,22 +5,20 @@ import static java.lang.String.format;
 import java.util.stream.IntStream;
 
 import com.bitwig.extension.api.util.midi.ShortMidiMessage;
+import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.AbsoluteHardwareKnob;
 import com.bitwig.extension.controller.api.Channel;
 import com.bitwig.extension.controller.api.ClipLauncherSlotBank;
 import com.bitwig.extension.controller.api.ControllerHost;
 import com.bitwig.extension.controller.api.CursorRemoteControlsPage;
-import com.bitwig.extension.controller.api.CursorTrack;
 import com.bitwig.extension.controller.api.Device;
 import com.bitwig.extension.controller.api.DeviceBank;
 import com.bitwig.extension.controller.api.HardwareButton;
 import com.bitwig.extension.controller.api.HardwareSurface;
 import com.bitwig.extension.controller.api.MidiIn;
 import com.bitwig.extension.controller.api.SceneBank;
-import com.bitwig.extension.controller.api.TrackBank;
 import com.bitwig.extension.controller.api.Track;
-import com.bitwig.extension.controller.api.Transport;
-import com.bitwig.extension.controller.ControllerExtension;
+import com.bitwig.extension.controller.api.TrackBank;
 
 public class TraktorKontrolF1Extension extends ControllerExtension
 {
