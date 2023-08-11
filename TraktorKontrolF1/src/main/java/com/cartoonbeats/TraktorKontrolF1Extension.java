@@ -7,12 +7,9 @@ import java.util.stream.IntStream;
 import com.bitwig.extension.api.util.midi.ShortMidiMessage;
 import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.AbsoluteHardwareKnob;
-import com.bitwig.extension.controller.api.Channel;
 import com.bitwig.extension.controller.api.ClipLauncherSlotBank;
 import com.bitwig.extension.controller.api.ControllerHost;
 import com.bitwig.extension.controller.api.CursorRemoteControlsPage;
-import com.bitwig.extension.controller.api.Device;
-import com.bitwig.extension.controller.api.DeviceBank;
 import com.bitwig.extension.controller.api.HardwareButton;
 import com.bitwig.extension.controller.api.HardwareSurface;
 import com.bitwig.extension.controller.api.MidiIn;
@@ -56,20 +53,12 @@ public class TraktorKontrolF1Extension extends ControllerExtension
 
       // Loop over first 8 channels, assigning knob to first macro param and fader to level fader.
       IntStream.range(0,4).forEach(channelIndex -> {
-         Channel currentChannel = tracks.getItemAt(channelIndex);
-         final int numDevices = 1;
-         DeviceBank channelDevices = currentChannel.createDeviceBank(numDevices);
-         // Get the first device (i.e. the main instrument plugin).
-         // Future: handle midi or other "prefix" devices before instrument,
-         // e.g. get first instrument plugin, or allow user to select device somehow.
-         Device device = channelDevices.getDevice(0);
+         Track track = tracks.getItemAt(channelIndex);
 
-         // Get the first page of macro controls.
+         // Get the first page of remote controls (aka macros) for the track.
          // Future: get a named "Perform" page if available.
          final int maxParams = 8; // we'll have access to full page of 8 but only access knobs 1 and 5 (0/4)
-         // final String customName = "KontrolF1PerformPage";
-         // final String filter = "perf"; // Attempted to get access to `Perform` page but it didn't work
-         CursorRemoteControlsPage remoteControlsPage = device.createCursorRemoteControlsPage(maxParams);
+         CursorRemoteControlsPage remoteControlsPage =  track.createCursorRemoteControlsPage(maxParams);
 
          int paramIndex = 0;
          // Assign the knob to the first macro control.
@@ -77,8 +66,8 @@ public class TraktorKontrolF1Extension extends ControllerExtension
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, knobCCCh1 + channelIndex));
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
 
-         // Assign the knob to the fifth macro control (first in bottom row).
-         paramIndex = 4;
+         // Assign the fader to the second macro control.
+         paramIndex = 1;
          knob = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d_%d", channelIndex, paramIndex));
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, faderCCCh1 + channelIndex));
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
@@ -87,7 +76,8 @@ public class TraktorKontrolF1Extension extends ControllerExtension
       // Highlight which tracks are focused for performance params (and in future - clip launcher).
       Track track = tracks.getItemAt(0);
       ClipLauncherSlotBank clipLauncherSlotBank = track.clipLauncherSlotBank();
-      clipLauncherSlotBank.setIndication(true);
+      // setIndication is deprecated, so commented until I figure out how to get it back.
+      // clipLauncherSlotBank.setIndication(true);
 
       // QUANT & CAPTURE buttons nav tracks left/right (page size 4).
       final int quantButtonCC = 13;
