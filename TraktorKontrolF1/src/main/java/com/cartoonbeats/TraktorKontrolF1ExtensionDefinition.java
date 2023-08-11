@@ -53,7 +53,7 @@ public class TraktorKontrolF1ExtensionDefinition extends ControllerExtensionDefi
    @Override
    public int getRequiredAPIVersion()
    {
-      return 16;
+      return 18;
    }
 
    @Override
