@@ -1,2 +1,2 @@
 #!/bin/bash
-mvn install && cp target/HelloWorld.bwextension ~/Documents/Bitwig\ Studio/Extensions/
+mvn install && cp target/CBRKontrolF1.bwextension ~/Documents/Bitwig\ Studio/Extensions/
