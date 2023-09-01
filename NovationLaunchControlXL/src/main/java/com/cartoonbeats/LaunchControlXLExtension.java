@@ -9,6 +9,7 @@ import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.AbsoluteHardwareKnob;
 import com.bitwig.extension.controller.api.ControllerHost;
 import com.bitwig.extension.controller.api.CursorRemoteControlsPage;
+import com.bitwig.extension.controller.api.HardwareButton;
 import com.bitwig.extension.controller.api.HardwareSurface;
 import com.bitwig.extension.controller.api.MidiIn;
 import com.bitwig.extension.controller.api.Track;
@@ -25,7 +26,6 @@ public class LaunchControlXLExtension extends ControllerExtension
    public void init()
    {
       final ControllerHost host = getHost();
-
       MidiIn midiIn = host.getMidiInPort(0);
 
       hardwareSurface = host.createHardwareSurface();
@@ -33,7 +33,7 @@ public class LaunchControlXLExtension extends ControllerExtension
 
       // Get a reference to the tracks we want to control.
       final int numTracks = 8;
-      final int numSends = 0;
+      final int numSends = 2;
       final int numScenes = 1;
       TrackBank tracks = host.createMainTrackBank(
          numTracks,
@@ -49,6 +49,8 @@ public class LaunchControlXLExtension extends ControllerExtension
       final int sendBCCCh1 = 29; // CC29-36
       final int panCCCh1 = 49; // CC49-56
       final int faderCCCh1 = 77; // CC77-84
+      final int[] trackFocusButtonNote = { 41, 42, 43, 44, 57, 58, 59, 60};
+      final int[] trackControlButtonNote = { 73, 74, 75, 76, 89, 90, 91, 92 };
 
       // Map 8 channels of control.
       IntStream.range(0,8).forEach(channelIndex -> {
@@ -81,9 +83,53 @@ public class LaunchControlXLExtension extends ControllerExtension
          knob = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d", channelIndex));
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(launchControlMidiChannel, faderCCCh1 + channelIndex));
          knob.setBinding(track.volume());
+
+         // Assign buttons to momentary sends (e.g. stab to reverb/stab to delay).
+         // knob = hardwareSurface.createAbsoluteHardwareKnob(format("trackFocus__ch%d", channelIndex));
+         // knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(launchControlMidiChannel, trackFocusButtonCC[channelIndex]));
+         // knob.setBinding(track.sendBank().getItemAt(0).value());
+         // this->bindButtonToSendformat("trackControl__ch%d", channelIndex)
+         bindButtonToSend(
+            format("trackFocus__ch%d", channelIndex),
+            channelIndex,
+            track,
+            0,
+            launchControlMidiChannel,
+            trackFocusButtonNote[channelIndex]
+         );
+         bindButtonToSend(
+            format("trackFControl__ch%d", channelIndex),
+            channelIndex,
+            track,
+            1,
+            launchControlMidiChannel,
+            trackControlButtonNote[channelIndex]
+         );
       });
 
       // TODO: navigate up/down tracks (1 or bankwise)
+   }
+
+   private void bindButtonToSend(String hardwareName, int channelIndex, Track track, int sendIndex, int midiChannel, int noteNumber)
+   {
+      final ControllerHost host = getHost();
+      MidiIn midiIn = host.getMidiInPort(0);
+
+      HardwareButton button = hardwareSurface.createHardwareButton(hardwareName);
+      button.pressedAction().setActionMatcher(midiIn.createNoteOnActionMatcher(midiChannel, noteNumber));
+      button.releasedAction().setActionMatcher(midiIn.createNoteOffActionMatcher(midiChannel, noteNumber));
+      button.pressedAction().setBinding(host.createAction(
+         () -> {
+            track.sendBank().getItemAt(sendIndex).value().set(1.0);
+         },
+         () -> format("setSend_%d_Max", sendIndex))
+      );
+      button.releasedAction().setBinding(host.createAction(
+         () -> {
+            track.sendBank().getItemAt(sendIndex).value().set(0.0);
+         },
+         () -> format("setSend_%d_Min", sendIndex))
+      );
    }
 
    @Override
