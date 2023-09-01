@@ -26,7 +26,6 @@ public class LaunchControlXLExtension extends ControllerExtension
    {
       final ControllerHost host = getHost();
 
-      // TODO: Perform your driver initialization here.
       MidiIn midiIn = host.getMidiInPort(0);
 
       hardwareSurface = host.createHardwareSurface();
@@ -42,15 +41,16 @@ public class LaunchControlXLExtension extends ControllerExtension
          numScenes
       );
 
-      // TODO Kontrol F1 is on channel 9 in Protokol (aka 8 zero-based)
+      // Kontrol F1 is on channel 9 in Protokol (aka 8 zero-based)
       final int launchControlMidiChannel = 8;
 
-      // TODO declare constants for the different hardware controls
+      // Declare constants for the different hardware controls.
       final int sendACCCh1 = 13; // CC13-20
       final int sendBCCCh1 = 29; // CC29-36
       final int panCCCh1 = 49; // CC49-56
+      final int faderCCCh1 = 77; // CC77-84
 
-      // Loop over first 8 channels, assigning knob to first macro param and fader to level fader.
+      // Map 8 channels of control.
       IntStream.range(0,8).forEach(channelIndex -> {
          Track track = tracks.getItemAt(channelIndex);
 
@@ -61,27 +61,26 @@ public class LaunchControlXLExtension extends ControllerExtension
 
          int paramIndex = 0;
          // Assign Send A knob to the first macro control.
-         AbsoluteHardwareKnob knob = hardwareSurface.createAbsoluteHardwareKnob(format("SENDA__ch%d_%d", channelIndex, paramIndex));
+         AbsoluteHardwareKnob knob = hardwareSurface.createAbsoluteHardwareKnob(format("SENDA__ch%d", channelIndex));
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(launchControlMidiChannel, sendACCCh1 + channelIndex));
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
 
          // Assign Send B knob to the second macro control.
          paramIndex++;
-         knob = hardwareSurface.createAbsoluteHardwareKnob(format("SENDB__ch%d_%d", channelIndex, paramIndex));
+         knob = hardwareSurface.createAbsoluteHardwareKnob(format("SENDB__ch%d", channelIndex));
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(launchControlMidiChannel, sendBCCCh1 + channelIndex));
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
 
          // Assign pan knob to the second macro control.
          paramIndex++;
-         knob = hardwareSurface.createAbsoluteHardwareKnob(format("PAN__ch%d_%d", channelIndex, paramIndex));
+         knob = hardwareSurface.createAbsoluteHardwareKnob(format("PAN__ch%d", channelIndex));
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(launchControlMidiChannel, panCCCh1 + channelIndex));
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
 
-         // Assign Send B knob to the second macro control.
-
          // Assign the fader to the second macro control.
-         knob = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d_%d", channelIndex, paramIndex));
-         // TODO
+         knob = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d", channelIndex));
+         knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(launchControlMidiChannel, faderCCCh1 + channelIndex));
+         knob.setBinding(track.volume());
       });
 
       // TODO: navigate up/down tracks (1 or bankwise)
