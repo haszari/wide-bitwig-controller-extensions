@@ -108,6 +108,7 @@ public class LaunchControlXLExtension extends ControllerExtension
       });
 
       // TODO: navigate up/down tracks (1 or bankwise)
+      // TODO: allow selecting focus track – e.g. shift + track select (will need a shift mode)
    }
 
    private void bindButtonToSend(String hardwareName, int channelIndex, Track track, int sendIndex, int midiChannel, int noteNumber)
@@ -135,21 +136,17 @@ public class LaunchControlXLExtension extends ControllerExtension
    @Override
    public void exit()
    {
-      // TODO: Perform any cleanup once the driver exits
-      // For now just show a popup notification for verification that it is no longer running.
-      // getHost().showPopupNotification("Hello World Exited");
    }
 
    @Override
    public void flush()
    {
-      // TODO Send any updates you need here.
+      // TODO Show send state on track buttons.
    }
 
    /** Called when we receive short MIDI message on port 0. */
    private void onMidi0(ShortMidiMessage msg)
    {
-      // TODO: Implement your MIDI input handling code here.
    }
 
    /** Called when we receive sysex MIDI message on port 0. */
