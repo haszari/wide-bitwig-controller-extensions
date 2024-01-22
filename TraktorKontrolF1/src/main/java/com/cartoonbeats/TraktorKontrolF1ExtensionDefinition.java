@@ -71,22 +71,14 @@ public class TraktorKontrolF1ExtensionDefinition extends ControllerExtensionDefi
    @Override
    public void listAutoDetectionMidiPortNames(final AutoDetectionMidiPortNamesList list, final PlatformType platformType)
    {
-      if (platformType == PlatformType.WINDOWS)
-      {
-         // TODO: Set the correct names of the ports for auto detection on Windows platform here
-         // and uncomment this when port names are correct.
-         // list.add(new String[]{"Traktor Kontrol F1 - 1 Input"}, new String[]{"Traktor Kontrol F1 - 1 Output"});
-      }
-      else if (platformType == PlatformType.MAC)
-      {
-         list.add(new String[]{"Traktor Kontrol F1 - 1 Input"}, new String[]{"Traktor Kontrol F1 - 1 Output"});
-      }
-      else if (platformType == PlatformType.LINUX)
-      {
-         // TODO: Set the correct names of the ports for auto detection on Windows platform here
-         // and uncomment this when port names are correct.
-         // list.add(new String[]{"Input Port 0"}, new String[]{"Output Port 0"});
-      }
+      // NI allows for 4 decks, on different virtual ports.
+      // However, I don't think Bitwig allows multiple options for autodetect ports.
+      // So, we'll just autodetect the first F1, others will need to be added manually.
+      // Note these port names are tested/discovered on macOS, might be different on other platforms.
+      list.add(
+         new String[]{"Traktor Kontrol F1 - 1 Input"},
+         new String[]{"Traktor Kontrol F1 - 1 Output"}
+      );
    }
 
    @Override
