@@ -4,15 +4,19 @@ import static java.lang.String.format;
 
 import java.util.stream.IntStream;
 
+import com.bitwig.extension.api.Color;
 import com.bitwig.extension.api.util.midi.ShortMidiMessage;
 import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.AbsoluteHardwareKnob;
-import com.bitwig.extension.controller.api.ClipLauncherSlotBank;
+import com.bitwig.extension.controller.api.ClipLauncherSlot;
 import com.bitwig.extension.controller.api.ControllerHost;
 import com.bitwig.extension.controller.api.CursorRemoteControlsPage;
 import com.bitwig.extension.controller.api.HardwareButton;
+import com.bitwig.extension.controller.api.HardwareLightVisualState;
 import com.bitwig.extension.controller.api.HardwareSurface;
 import com.bitwig.extension.controller.api.MidiIn;
+import com.bitwig.extension.controller.api.MidiOut;
+import com.bitwig.extension.controller.api.OnOffHardwareLight;
 import com.bitwig.extension.controller.api.Track;
 import com.bitwig.extension.controller.api.TrackBank;
 
@@ -28,8 +32,8 @@ public class TraktorKontrolF1Extension extends ControllerExtension
    {
       final ControllerHost host = getHost();
 
-      // TODO: Perform your driver initialization here.
       MidiIn midiIn = host.getMidiInPort(0);
+      MidiOut midiOut = host.getMidiOutPort(0);
 
       hardwareSurface = host.createHardwareSurface();
       hardwareSurface.setPhysicalSize(100.0, 100.0);
@@ -52,9 +56,10 @@ public class TraktorKontrolF1Extension extends ControllerExtension
       // declare constants for the different hardware controls
       final int knobCCCh1 = 2; // CC2 - CC5
       final int faderCCCh1 = 6; // CC6 - CC9
+      final int gridNoteTopLeft = 36; // Ch1 36…39, Ch2 40…43, Ch3 44…47, Ch4 48…51
 
       // Loop over first 8 channels, assigning knob to first macro param and fader to level fader.
-      IntStream.range(0,4).forEach(channelIndex -> {
+      IntStream.range(0,numTracks).forEach(channelIndex -> {
          Track track = tracks.getItemAt(channelIndex);
 
          // Get the first page of remote controls (aka macros) for the track.
@@ -73,11 +78,38 @@ public class TraktorKontrolF1Extension extends ControllerExtension
          knob = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d_%d", channelIndex, paramIndex));
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, faderCCCh1 + channelIndex));
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
-      });
 
-      // Highlight which tracks are focused for performance params (and in future - clip launcher).
-      Track track = tracks.getItemAt(0);
-      ClipLauncherSlotBank clipLauncherSlotBank = track.clipLauncherSlotBank();
+
+         final int channelGridNoteStart = channelIndex * numTracks;
+         IntStream.range(0,numScenes).forEach(rowIndex -> {
+            int slotIndex = channelGridNoteStart + rowIndex;
+            int midiNote = gridNoteTopLeft + slotIndex;
+
+            HardwareButton clipButton = hardwareSurface.createHardwareButton(format("CLIP_BUTTON_%d_%d", channelIndex, rowIndex));
+            clipButton.pressedAction().setActionMatcher(midiIn.createNoteOnActionMatcher(kontrolF1MidiChannel, midiNote));
+            clipButton.setBounds(10 + channelIndex * 20, 10 + rowIndex * 20, 10, 10);
+
+            ClipLauncherSlot sessionClip = track.clipLauncherSlotBank().getItemAt(rowIndex);
+            sessionClip.isPlaying().markInterested();
+            clipButton.pressedAction().setBinding(sessionClip.launchAction());
+
+            OnOffHardwareLight light = hardwareSurface.createOnOffHardwareLight(format("CLIP_LED_%d_%d", channelIndex, rowIndex));
+            // light.setBounds(0 + channelIndex * 20, 10, 10, 10);
+            light.setOnColor(Color.whiteColor());
+            light.setOffColor(Color.blackColor());
+            light.setStateToVisualStateFunction(
+               isOn -> isOn ? HardwareLightVisualState.createForColor(Color.whiteColor(), Color.blackColor())
+               : HardwareLightVisualState.createForColor(Color.blackColor(), Color.blackColor()));
+            light.isOn().setValueSupplier(sessionClip.isPlaying());
+            clipButton.setBackgroundLight(light);
+            light.isOn().onUpdateHardware(value -> {
+               // Send note on/off to light up the button.
+               midiOut.sendMidi(0x90 + kontrolF1MidiChannel, midiNote, value ? 127 : 0);
+            });
+         });
+
+
+      });
 
       // QUANT & CAPTURE buttons nav tracks left/right (page size 4).
       final int quantButtonCC = 13;
@@ -88,7 +120,6 @@ public class TraktorKontrolF1Extension extends ControllerExtension
       HardwareButton captureButton = hardwareSurface.createHardwareButton(format("CAPT_BUTTON"));
       captureButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, captureButtonCC, 127));
       captureButton.pressedAction().setBinding(tracks.scrollPageForwardsAction());
-
    }
 
    @Override
@@ -103,6 +134,7 @@ public class TraktorKontrolF1Extension extends ControllerExtension
    public void flush()
    {
       // TODO Send any updates you need here.
+      hardwareSurface.updateHardware();
    }
 
    /** Called when we receive short MIDI message on port 0. */
