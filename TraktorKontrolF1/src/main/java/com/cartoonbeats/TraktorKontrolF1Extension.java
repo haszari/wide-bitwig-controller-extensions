@@ -79,7 +79,7 @@ public class TraktorKontrolF1Extension extends ControllerExtension
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, faderCCCh1 + channelIndex));
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
 
-
+         // Assign 4x4 grid buttons to clip launcher slots.
          final int channelGridNoteStart = channelIndex * numTracks;
          IntStream.range(0,numScenes).forEach(rowIndex -> {
             int slotIndex = channelGridNoteStart + rowIndex;
@@ -108,10 +108,16 @@ public class TraktorKontrolF1Extension extends ControllerExtension
             });
          });
 
+         // Map stop button row to stop whatever clip is playing in that channel.
+         final int ch1StopButtonCC = 37;
+         HardwareButton quantButton = hardwareSurface.createHardwareButton(format("STOP_BUTTON_%d", channelIndex));
+         quantButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, ch1StopButtonCC + channelIndex, 127));
+         quantButton.pressedAction().setBinding(track.stopAction());
 
       });
 
       // QUANT & CAPTURE buttons nav tracks left/right (page size 4).
+      // This allows us to set left/right "deck".
       final int quantButtonCC = 13;
       HardwareButton quantButton = hardwareSurface.createHardwareButton(format("QUANT_BUTTON"));
       quantButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, quantButtonCC, 127));
