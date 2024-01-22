@@ -16,7 +16,20 @@ I'm betting that's more fun!
 ## Status
 Early days.
 
-A single controller extension for the [OG Korg nanoKontrol](http://i.korg.com/uploads/Support/nanoKONTROL_OM_E2_633664627400740000.pdf).
-
+#### [OG Korg nanoKontrol](http://i.korg.com/uploads/Support/nanoKONTROL_OM_E2_633664627400740000.pdf).
 - Faders are [bound](./src/main/java/com/cartoonbeats/NanoKontrolExtension.java#L83) to channel faders.
 - Knobs are [bound](./main/src/main/java/com/cartoonbeats/NanoKontrolExtension.java#L77) to the first [remote control](https://www.bitwig.com/userguide/latest/midi_controllers/#the_remote_controls_pane) in the first page of the first device.
+
+#### Native Instruments Kontrol F1
+- Knob is bound to channel remote control 1.
+- Fader is bound to channel remote control 2.
+- Grid buttons for launching clips (with playing feedback light).
+- Stop button for stopping.
+- Navigate tracks & clip pages:
+  - `SYNC`/`QUANT` left/right
+  - `CAPTURE`/`TYPE` up/down
+
+#### Novation LaunchControl XL
+- Fader is channel fader.
+- Knobs are first three remote controls.
+- Channel buttons are first 2 sends (momentary - hold down to send signal to aux).
