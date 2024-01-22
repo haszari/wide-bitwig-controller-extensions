@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <ni-controller-midi-map version="1">
-  <midi-map type="TraktorKontrolF1" name="Rua wide sunset" port="internal">
+  <midi-map type="TraktorKontrolF1" name="Rua wide vomit" port="internal">
     <shiftmode>0</shiftmode>
     <wrapmode>0</wrapmode>
     <controls />
@@ -296,7 +296,7 @@
         </led>
         <led version="1" id="PadB1H">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="3" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="5" color-off-index="1" />
           </display>
           <note>37</note>
           <channel>0</channel>
@@ -334,7 +334,7 @@
         </led>
         <led version="1" id="PadB2H">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="3" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="5" color-off-index="1" />
           </display>
           <note>41</note>
           <channel>0</channel>
@@ -372,7 +372,7 @@
         </led>
         <led version="1" id="PadB3H">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="3" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="5" color-off-index="1" />
           </display>
           <note>45</note>
           <channel>0</channel>
@@ -410,7 +410,7 @@
         </led>
         <led version="1" id="PadB4H">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="3" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="5" color-off-index="1" />
           </display>
           <note>49</note>
           <channel>0</channel>
@@ -448,7 +448,7 @@
         </led>
         <led version="1" id="PadC1H">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="2" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="7" color-off-index="1" />
           </display>
           <note>38</note>
           <channel>0</channel>
@@ -486,7 +486,7 @@
         </led>
         <led version="1" id="PadC2H">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="2" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="7" color-off-index="1" />
           </display>
           <note>42</note>
           <channel>0</channel>
@@ -524,7 +524,7 @@
         </led>
         <led version="1" id="PadC3H">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="2" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="7" color-off-index="1" />
           </display>
           <note>46</note>
           <channel>0</channel>
@@ -562,7 +562,7 @@
         </led>
         <led version="1" id="PadC4H">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="2" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="7" color-off-index="1" />
           </display>
           <note>50</note>
           <channel>0</channel>
@@ -600,7 +600,7 @@
         </led>
         <led version="1" id="PadD1H">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="1" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="6" color-off-index="1" />
           </display>
           <note>39</note>
           <channel>0</channel>
@@ -638,7 +638,7 @@
         </led>
         <led version="1" id="PadD2H">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="1" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="6" color-off-index="1" />
           </display>
           <note>43</note>
           <channel>0</channel>
@@ -676,7 +676,7 @@
         </led>
         <led version="1" id="PadD3H">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="1" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="6" color-off-index="1" />
           </display>
           <note>47</note>
           <channel>0</channel>
@@ -714,7 +714,7 @@
         </led>
         <led version="1" id="PadD4H">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="1" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="6" color-off-index="1" />
           </display>
           <note>51</note>
           <channel>0</channel>
