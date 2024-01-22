@@ -17,6 +17,7 @@ import com.bitwig.extension.controller.api.HardwareSurface;
 import com.bitwig.extension.controller.api.MidiIn;
 import com.bitwig.extension.controller.api.MidiOut;
 import com.bitwig.extension.controller.api.OnOffHardwareLight;
+import com.bitwig.extension.controller.api.SceneBank;
 import com.bitwig.extension.controller.api.Track;
 import com.bitwig.extension.controller.api.TrackBank;
 
@@ -116,16 +117,27 @@ public class TraktorKontrolF1Extension extends ControllerExtension
 
       });
 
-      // QUANT & CAPTURE buttons nav tracks left/right (page size 4).
-      // This allows us to set left/right "deck".
+      // Navigate up/down & left/right 4x4 grid pages.
+      // SYNC QUANT left right
+      // CAPTURE TYPE up down
+      final int syncButtonCC = 12;
+      HardwareButton syncButton = hardwareSurface.createHardwareButton(format("SYNC_BUTTON"));
+      syncButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, syncButtonCC, 127));
+      syncButton.pressedAction().setBinding(tracks.scrollPageBackwardsAction());
       final int quantButtonCC = 13;
       HardwareButton quantButton = hardwareSurface.createHardwareButton(format("QUANT_BUTTON"));
       quantButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, quantButtonCC, 127));
-      quantButton.pressedAction().setBinding(tracks.scrollPageBackwardsAction());
+      quantButton.pressedAction().setBinding(tracks.scrollPageForwardsAction());
+
+      SceneBank scenes = tracks.sceneBank();
       final int captureButtonCC = 14;
       HardwareButton captureButton = hardwareSurface.createHardwareButton(format("CAPT_BUTTON"));
       captureButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, captureButtonCC, 127));
-      captureButton.pressedAction().setBinding(tracks.scrollPageForwardsAction());
+      captureButton.pressedAction().setBinding(scenes.scrollPageBackwardsAction());
+      final int typeButtonCC = 16;
+      HardwareButton typeButton = hardwareSurface.createHardwareButton(format("TYPE_BUTTON"));
+      typeButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, typeButtonCC, 127));
+      typeButton.pressedAction().setBinding(scenes.scrollPageForwardsAction());
    }
 
    @Override
