@@ -37,12 +37,14 @@ public class TraktorKontrolF1Extension extends ControllerExtension
       // Get a reference to the tracks we want to control.
       final int numTracks = 4;
       final int numSends = 0;
-      final int numScenes = 1;
+      final int numScenes = 4;
       TrackBank tracks = host.createMainTrackBank(
          numTracks,
          numSends,
          numScenes
       );
+      // Show the highlight rect in session view so we know which clips we're pointing at.
+      tracks.setShouldShowClipLauncherFeedback(true);
 
       // Kontrol F1 is on channel 13 (aka 12 zero-based)
       final int kontrolF1MidiChannel = 12;
@@ -76,8 +78,6 @@ public class TraktorKontrolF1Extension extends ControllerExtension
       // Highlight which tracks are focused for performance params (and in future - clip launcher).
       Track track = tracks.getItemAt(0);
       ClipLauncherSlotBank clipLauncherSlotBank = track.clipLauncherSlotBank();
-      // setIndication is deprecated, so commented until I figure out how to get it back.
-      // clipLauncherSlotBank.setIndication(true);
 
       // QUANT & CAPTURE buttons nav tracks left/right (page size 4).
       final int quantButtonCC = 13;
