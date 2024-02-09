@@ -61,7 +61,10 @@ public class LaunchControlXLExtension extends ControllerExtension
          final int maxParams = 8; // we'll have access to full page of 8 but only access knobs 1 and 5 (0/4)
          CursorRemoteControlsPage remoteControlsPage =  track.createCursorRemoteControlsPage(maxParams);
 
-         int paramIndex = 0;
+         // Start binding remote controls at index 4 - bottom row.
+         // This is designed to allow other controller (Kontrol F1) to control the top row.
+         // TODO In future this should be a config parameter.
+         int paramIndex = 4;
          // Assign Send A knob to the first macro control.
          AbsoluteHardwareKnob knob = hardwareSurface.createAbsoluteHardwareKnob(format("SENDA__ch%d", channelIndex));
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(launchControlMidiChannel, sendACCCh1 + channelIndex));
@@ -79,7 +82,7 @@ public class LaunchControlXLExtension extends ControllerExtension
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(launchControlMidiChannel, panCCCh1 + channelIndex));
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
 
-         // Assign the fader to the second macro control.
+         // Assign the fader to the channel fader.
          knob = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d", channelIndex));
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(launchControlMidiChannel, faderCCCh1 + channelIndex));
          knob.setBinding(track.volume());
