@@ -124,20 +124,20 @@ public class TraktorKontrolF1Extension extends ControllerExtension
       HardwareButton syncButton = hardwareSurface.createHardwareButton(format("SYNC_BUTTON"));
       syncButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, syncButtonCC, 127));
       syncButton.pressedAction().setBinding(tracks.scrollPageBackwardsAction());
-      final int quantButtonCC = 13;
-      HardwareButton quantButton = hardwareSurface.createHardwareButton(format("QUANT_BUTTON"));
-      quantButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, quantButtonCC, 127));
-      quantButton.pressedAction().setBinding(tracks.scrollPageForwardsAction());
-
-      SceneBank scenes = tracks.sceneBank();
       final int captureButtonCC = 14;
       HardwareButton captureButton = hardwareSurface.createHardwareButton(format("CAPT_BUTTON"));
       captureButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, captureButtonCC, 127));
-      captureButton.pressedAction().setBinding(scenes.scrollPageBackwardsAction());
-      final int typeButtonCC = 16;
-      HardwareButton typeButton = hardwareSurface.createHardwareButton(format("TYPE_BUTTON"));
-      typeButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, typeButtonCC, 127));
-      typeButton.pressedAction().setBinding(scenes.scrollPageForwardsAction());
+      captureButton.pressedAction().setBinding(tracks.scrollPageForwardsAction());
+
+      SceneBank scenes = tracks.sceneBank();
+      final int quantButtonCC = 13;
+      HardwareButton quantButton = hardwareSurface.createHardwareButton(format("QUANT_BUTTON"));
+      quantButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, quantButtonCC, 127));
+      quantButton.pressedAction().setBinding(scenes.scrollPageBackwardsAction());
+      final int revButtonCC = 15;
+      HardwareButton revButton = hardwareSurface.createHardwareButton(format("REVERSE_BUTTON"));
+      revButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, revButtonCC, 127));
+      revButton.pressedAction().setBinding(scenes.scrollPageForwardsAction());
    }
 
    @Override
