@@ -83,7 +83,11 @@ final class F1ColourInfo {
    }
 
    public static final F1ColourInfo BLACK = new F1ColourInfo(0, 0.0f, 0.0f, 0);
-   public static final F1ColourInfo WHITE  = new F1ColourInfo(0, 1.0f, 1.0f, 68);
+   // This white is different to the manual, but it works for my hardware.
+   // It's a very dim purple white.
+   public static final F1ColourInfo WHITE  = new F1ColourInfo(0, 1.0f, 1.0f, 72);
+   // And I reckon this is brighter
+   public static final F1ColourInfo ULTRAWHITE  = new F1ColourInfo(0, 1.0f, 1.0f, 76);
 
    public static final F1ColourInfo RED = new F1ColourInfo(0, 4);
    public static final F1ColourInfo ORANGE = new F1ColourInfo(15, 8);
@@ -192,7 +196,7 @@ final class ClipPadState extends InternalHardwareLightState {
          return false;
       }
       final ClipPadState other = (ClipPadState) obj;
-      return state == other.state;
+      return state == other.state && clipColour.equals(other.clipColour);
    }
 
    // This is purely used to display the light in the fake simulated hardware in
@@ -217,7 +221,7 @@ final class ClipPadState extends InternalHardwareLightState {
             colourIndex = clipPadColour.getBright();
             break;
          case TRIGGERED:
-            colourIndex = F1ColourInfo.WHITE.getBright();
+            colourIndex = F1ColourInfo.ULTRAWHITE.getBright();
             break;
          case STOPPING:
             colourIndex = F1ColourInfo.WHITE.getDim();
@@ -246,20 +250,19 @@ class ClipPadStateSupplier implements Supplier<ClipPadState> {
       ClipPadState state = ClipPadState.empty();
 
       // Triggered & stopping override playing state.
-      if (sessionClip.isPlaybackQueued().get())
+      if (sessionClip.isPlaybackQueued().get()) {
          state =  ClipPadState.triggered();
-      else if (sessionClip.isStopQueued().get())
+      }
+      else if (sessionClip.isStopQueued().get()) {
          state = ClipPadState.stopping();
-
+      }
       else if (sessionClip.isPlaying().get()) {
          state = ClipPadState.playing();
-         state.setColor(sessionClip.color().get());
       }
       else if (sessionClip.hasContent().get()) {
          state = ClipPadState.clip();
-         state.setColor(sessionClip.color().get());
       }
-
+      state.setColor(sessionClip.color().get());
 
       return state;
    }
