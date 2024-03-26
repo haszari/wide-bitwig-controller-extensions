@@ -23,33 +23,120 @@ import com.bitwig.extension.controller.api.SceneBank;
 import com.bitwig.extension.controller.api.Track;
 import com.bitwig.extension.controller.api.TrackBank;
 
-final class F1ColourIndex {
-   public static final int OFF = 0;
-   public static final int DIM_WHITE = 68;
-   public static final int ON = 70;
-   public static final int WHITE = 70;
+// Map from named colours to MIDI message and hue/HSB value.
+// From Native Instruments Controller Editor manual.
+final class F1ColourInfo {
+   public int hue;
+   public float saturation;
+   public float brightness;
+   public int midiMessageBase;
 
-   // Sunset mode.
-   public static final int DIM_YELLOW = 20;
-   public static final int YELLOW = 22;
-   public static final int DIM_WARMYELLOW = 16;
-   public static final int WARMYELLOW = 18;
-   public static final int DIM_LIGHTORANGE = 12;
-   public static final int LIGHTORANGE = 14;
-   public static final int DIM_ORANGE = 8;
-   public static final int ORANGE = 10;
+   public F1ColourInfo(int hue, int midiMessageBase) {
+      this.hue = hue;
+      this.saturation = 1.0f;
+      this.brightness = 0.5f;
+      this.midiMessageBase = midiMessageBase;
+   }
 
-   public static final int RED = 6;
-   public static final int DIM_RED = 4;
-   public static final int GREEN = 30;
-   public static final int DIM_GREEN = 28;
-   public static final int BLUE = 46;
-}
+   public F1ColourInfo(int hue, float saturation, float brightness, int midiMessageBase) {
+      this.hue = hue;
+      this.saturation = saturation;
+      this.brightness = brightness;
+      this.midiMessageBase = midiMessageBase;
+   }
+
+   public int getDim() {
+      return this.midiMessageBase;
+   }
+
+   public int getBright() {
+      return this.midiMessageBase + 2;
+   }
+
+   public static F1ColourInfo getClosest(Color color, ControllerHost host) {
+      F1ColourInfo closest = F1ColourInfo.BLACK;
+      int r = color.getRed255();
+      int g = color.getGreen255();
+      int b = color.getBlue255();
+
+      float[] hsb = java.awt.Color.RGBtoHSB(r,g,b, null);
+      int hue = (int)Math.round(hsb[0] * 360);
+      int sat = (int)Math.round(hsb[1] * 100);
+      int bright = (int)Math.round(hsb[1] * 100);
+
+      host.println(String.format("Clip colour is (r%03d g%03d b%03d) aka (h%03d s%03d b%03d)", r,g,b, hue,sat, bright));
+
+      if ( sat < 10 && bright < 10 ) {
+         host.println(String.format("Black %d %d", sat, bright));
+         return F1ColourInfo.BLACK;
+      }
+
+      int hueDelta = 999;
+      for (F1ColourInfo colour : ALL_COLOURS) {
+         int hued = (int)Math.abs(hue - colour.hue);
+         if ( hued < hueDelta ) {
+            hueDelta = hued;
+            closest = colour;
+         }
+      }
+      return closest;
+   }
+
+   public static final F1ColourInfo BLACK = new F1ColourInfo(0, 0.0f, 0.0f, 0);
+   // This white is different to the manual, but it works for my hardware.
+   // It's a very dim purple white.
+   public static final F1ColourInfo WHITE  = new F1ColourInfo(0, 1.0f, 1.0f, 72);
+   // And I reckon this is brighter
+   public static final F1ColourInfo ULTRAWHITE  = new F1ColourInfo(0, 1.0f, 1.0f, 76);
+
+   public static final F1ColourInfo RED = new F1ColourInfo(0, 4);
+   public static final F1ColourInfo ORANGE = new F1ColourInfo(15, 8);
+   public static final F1ColourInfo LIGHTORANGE = new F1ColourInfo(35, 12);
+   public static final F1ColourInfo WARMYELLOW = new F1ColourInfo(50, 16);
+
+   public static final F1ColourInfo YELLOW = new F1ColourInfo(60, 20);
+   public static final F1ColourInfo LIME = new F1ColourInfo(86, 24);
+   public static final F1ColourInfo GREEN = new F1ColourInfo(120, 28);
+   public static final F1ColourInfo MINT = new F1ColourInfo(159, 32);
+
+   public static final F1ColourInfo CYAN = new F1ColourInfo(180, 36);
+   public static final F1ColourInfo TURQUOISE = new F1ColourInfo(192,40);
+   public static final F1ColourInfo BLUE = new F1ColourInfo(229, 44);
+   public static final F1ColourInfo PLUM = new F1ColourInfo(248, 48);
+
+   public static final F1ColourInfo VIOLET = new F1ColourInfo(269, 52);
+   public static final F1ColourInfo PURPLE = new F1ColourInfo(294, 56);
+   public static final F1ColourInfo MAGENTA = new F1ColourInfo(300, 60);
+   public static final F1ColourInfo FUCHSIA = new F1ColourInfo(328, 64);
+
+   // All colourful colours, no black/white. Used for matching by hue.
+   public static final F1ColourInfo ALL_COLOURS[] = {
+      F1ColourInfo.RED,
+      F1ColourInfo.ORANGE,
+      F1ColourInfo.LIGHTORANGE,
+      F1ColourInfo.WARMYELLOW,
+
+      F1ColourInfo.YELLOW,
+      F1ColourInfo.LIME,
+      F1ColourInfo.GREEN,
+      F1ColourInfo.MINT,
+
+      F1ColourInfo.CYAN,
+      F1ColourInfo.TURQUOISE,
+      F1ColourInfo.BLUE,
+      F1ColourInfo.PLUM,
+
+      F1ColourInfo.VIOLET,
+      F1ColourInfo.PURPLE,
+      F1ColourInfo.MAGENTA,
+      F1ColourInfo.FUCHSIA,
+   };
+
+};
 
 final class ClipPadState extends InternalHardwareLightState {
 
    // We have a logical state, the colours are config or channel dependent.
-   // AND IN FUTURE CLIP DEPENDENT!
    public static final int EMPTY = 0;
    public static final int CLIP = 1;
    public static final int TRIGGERED = 2;
@@ -57,6 +144,7 @@ final class ClipPadState extends InternalHardwareLightState {
    public static final int STOPPING = 4;
 
    int state = EMPTY;
+   Color clipColour = Color.blackColor();
 
    public ClipPadState(int state) {
       this.state = state;
@@ -85,6 +173,14 @@ final class ClipPadState extends InternalHardwareLightState {
       return state;
    }
 
+   public void setColor(Color color) {
+      clipColour = color;
+   }
+
+   public Color getColor() {
+      return clipColour;
+   }
+
    // I think this is also used and required by Bitwig.
    // Not sure how important it is to me.
    // I might get into trouble since my logical state is not the same as colour.
@@ -100,7 +196,7 @@ final class ClipPadState extends InternalHardwareLightState {
          return false;
       }
       final ClipPadState other = (ClipPadState) obj;
-      return state == other.state;
+      return state == other.state && clipColour.equals(other.clipColour);
    }
 
    // This is purely used to display the light in the fake simulated hardware in
@@ -112,38 +208,27 @@ final class ClipPadState extends InternalHardwareLightState {
 
    }
 
-   public static void updateHardware(final ClipPadState state, final MidiOut midiOut, final int channel, final int note) {
+   public static void updateHardware(final ClipPadState state, final MidiOut midiOut, final int channel, final int note, final ControllerHost host) {
       int colourIndex = 0;
-      int sunsetChannelColour = F1ColourIndex.DIM_YELLOW; // Ch 0
-      // This requires knowing the instrument channel, not the device midi channel.
-      // TODO – implement by storing channel as state.
-      // switch (channel) {
-      //    case 1:
-      //       sunsetChannelColour = F1ColourIndex.DIM_WARMYELLOW;
-      //       break;
-      //    case 2:
-      //       sunsetChannelColour = F1ColourIndex.DIM_LIGHTORANGE;
-      //       break;
-      //    case 3:
-      //       sunsetChannelColour = F1ColourIndex.DIM_ORANGE;
-      //       break;
-      // }
+
+      F1ColourInfo clipPadColour = F1ColourInfo.getClosest(state.getColor(), host);
+
       switch (state.getState()) {
          case CLIP:
-            colourIndex = sunsetChannelColour;
+            colourIndex = clipPadColour.getDim();
             break;
          case PLAYING:
-            colourIndex = sunsetChannelColour + 2;
+            colourIndex = clipPadColour.getBright();
             break;
          case TRIGGERED:
-            colourIndex = F1ColourIndex.DIM_GREEN;
+            colourIndex = F1ColourInfo.ULTRAWHITE.getBright();
             break;
          case STOPPING:
-            colourIndex = F1ColourIndex.DIM_RED;
+            colourIndex = F1ColourInfo.WHITE.getDim();
             break;
          case EMPTY:
          default:
-            colourIndex = F1ColourIndex.OFF;
+            colourIndex = F1ColourInfo.BLACK.getDim();
             break;
       }
       midiOut.sendMidi(0x90 + channel, note, colourIndex);
@@ -162,18 +247,24 @@ class ClipPadStateSupplier implements Supplier<ClipPadState> {
 
    @Override
    public ClipPadState get() {
+      ClipPadState state = ClipPadState.empty();
+
       // Triggered & stopping override playing state.
-      if (sessionClip.isPlaybackQueued().get())
-         return ClipPadState.triggered();
-      if (sessionClip.isStopQueued().get())
-         return ClipPadState.stopping();
+      if (sessionClip.isPlaybackQueued().get()) {
+         state =  ClipPadState.triggered();
+      }
+      else if (sessionClip.isStopQueued().get()) {
+         state = ClipPadState.stopping();
+      }
+      else if (sessionClip.isPlaying().get()) {
+         state = ClipPadState.playing();
+      }
+      else if (sessionClip.hasContent().get()) {
+         state = ClipPadState.clip();
+      }
+      state.setColor(sessionClip.color().get());
 
-      if (sessionClip.isPlaying().get())
-         return ClipPadState.playing();
-      if (sessionClip.hasContent().get())
-         return ClipPadState.clip();
-
-      return ClipPadState.empty();
+      return state;
    }
 
 }
@@ -256,6 +347,7 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
             sessionClip.hasContent().markInterested();
             sessionClip.isPlaybackQueued().markInterested();
             sessionClip.isStopQueued().markInterested();
+            sessionClip.color().markInterested();
             clipButton.pressedAction().setBinding(sessionClip.launchAction());
 
             MultiStateHardwareLight light = hardwareSurface
@@ -263,7 +355,7 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
             clipButton.setBackgroundLight(light);
             light.state().setValueSupplier(new ClipPadStateSupplier(sessionClip));
             light.state().onUpdateHardware(state -> {
-               ClipPadState.updateHardware((ClipPadState)state, midiOut, kontrolF1MidiChannel, midiNote);
+               ClipPadState.updateHardware((ClipPadState)state, midiOut, kontrolF1MidiChannel, midiNote, host);
             });
          });
 
