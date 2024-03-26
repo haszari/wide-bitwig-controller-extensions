@@ -2,7 +2,6 @@ package com.cartoonbeats;
 
 import static java.lang.String.format;
 
-// import java.awt.Color;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
@@ -23,32 +22,6 @@ import com.bitwig.extension.controller.api.MultiStateHardwareLight;
 import com.bitwig.extension.controller.api.SceneBank;
 import com.bitwig.extension.controller.api.Track;
 import com.bitwig.extension.controller.api.TrackBank;
-
-// Map from named colours to MIDI message to enable that colour.
-// From Native Instruments Controller Editor manual.
-final class F1ColourIndex {
-   public static final int OFF = 0;
-   public static final int DIM_WHITE = 68;
-   public static final int ON = 70;
-   public static final int WHITE = 70;
-
-   // Sunset mode.
-   // public static final int DIM_YELLOW = 20;
-   // public static final int YELLOW = 22;
-   // public static final int DIM_WARMYELLOW = 16;
-   // public static final int WARMYELLOW = 18;
-   // public static final int DIM_LIGHTORANGE = 12;
-   // public static final int LIGHTORANGE = 14;
-   // public static final int DIM_ORANGE = 8;
-   // public static final int ORANGE = 10;
-
-   // public static final int RED = 6;
-   // public static final int DIM_RED = 4;
-   // public static final int GREEN = 30;
-   // public static final int DIM_GREEN = 28;
-   // public static final int BLUE = 46;
-};
-
 
 // Map from named colours to MIDI message and hue/HSB value.
 // From Native Instruments Controller Editor manual.
@@ -97,20 +70,12 @@ final class F1ColourInfo {
          host.println(String.format("Black %d %d", sat, bright));
          return F1ColourInfo.BLACK;
       }
-      // if ( sat > 90 && bright > 90 ) {
-      //    return F1ColourInfo.WHITE;
-      // }
-
 
       int hueDelta = 999;
-      // float satDelta = 1.0f;
       for (F1ColourInfo colour : ALL_COLOURS) {
          int hued = (int)Math.abs(hue - colour.hue);
-         // float satd = Math.abs(colour.saturation - hsb[1]);
-         if ( /*satd < satDelta && */hued < hueDelta ) {
-            host.println(String.format("Closer colour hued=%d midi=%d %d", hued, colour.getDim(), colour.getBright()));
+         if ( hued < hueDelta ) {
             hueDelta = hued;
-            // satDelta = satd;
             closest = colour;
          }
       }
@@ -168,7 +133,6 @@ final class F1ColourInfo {
 final class ClipPadState extends InternalHardwareLightState {
 
    // We have a logical state, the colours are config or channel dependent.
-   // AND IN FUTURE CLIP DEPENDENT!
    public static final int EMPTY = 0;
    public static final int CLIP = 1;
    public static final int TRIGGERED = 2;
@@ -253,14 +217,14 @@ final class ClipPadState extends InternalHardwareLightState {
             colourIndex = clipPadColour.getBright();
             break;
          case TRIGGERED:
-            colourIndex = F1ColourIndex.WHITE;
+            colourIndex = F1ColourInfo.WHITE.getBright();
             break;
          case STOPPING:
-            colourIndex = F1ColourIndex.DIM_WHITE;
+            colourIndex = F1ColourInfo.WHITE.getDim();
             break;
          case EMPTY:
          default:
-            colourIndex = F1ColourIndex.OFF;
+            colourIndex = F1ColourInfo.BLACK.getDim();
             break;
       }
       midiOut.sendMidi(0x90 + channel, note, colourIndex);
