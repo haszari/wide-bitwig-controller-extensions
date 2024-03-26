@@ -46,11 +46,11 @@ final class F1ColourInfo {
    }
 
    public int getDim() {
-      return midiMessageBase;
+      return this.midiMessageBase;
    }
 
    public int getBright() {
-      return midiMessageBase + 2;
+      return this.midiMessageBase + 2;
    }
 
    public static F1ColourInfo getClosest(Color color, ControllerHost host) {
@@ -252,8 +252,8 @@ class ClipPadStateSupplier implements Supplier<ClipPadState> {
          state = ClipPadState.stopping();
 
       else if (sessionClip.isPlaying().get()) {
-         state.setColor(sessionClip.color().get());
          state = ClipPadState.playing();
+         state.setColor(sessionClip.color().get());
       }
       else if (sessionClip.hasContent().get()) {
          state = ClipPadState.clip();
