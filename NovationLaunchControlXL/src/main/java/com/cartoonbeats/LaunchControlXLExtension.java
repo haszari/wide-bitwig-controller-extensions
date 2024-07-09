@@ -12,6 +12,7 @@ import com.bitwig.extension.controller.api.CursorRemoteControlsPage;
 import com.bitwig.extension.controller.api.HardwareButton;
 import com.bitwig.extension.controller.api.HardwareSurface;
 import com.bitwig.extension.controller.api.MidiIn;
+import com.bitwig.extension.controller.api.RemoteControl;
 import com.bitwig.extension.controller.api.Track;
 import com.bitwig.extension.controller.api.TrackBank;
 
@@ -58,7 +59,7 @@ public class LaunchControlXLExtension extends ControllerExtension
 
          // Get the first page of remote controls (aka macros) for the track.
          // Future: get a named "Perform" page if available.
-         final int maxParams = 8; // we'll have access to full page of 8 but only access knobs 1 and 5 (0/4)
+         final int maxParams = 8;
          CursorRemoteControlsPage remoteControlsPage =  track.createCursorRemoteControlsPage(maxParams);
 
          // Start binding remote controls at index 4 - bottom row.
@@ -87,24 +88,22 @@ public class LaunchControlXLExtension extends ControllerExtension
          knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(launchControlMidiChannel, faderCCCh1 + channelIndex));
          knob.setBinding(track.volume());
 
-         // Assign buttons to momentary sends (e.g. stab to reverb/stab to delay).
-         // knob = hardwareSurface.createAbsoluteHardwareKnob(format("trackFocus__ch%d", channelIndex));
-         // knob.setAdjustValueMatcher(midiIn.createAbsoluteCCValueMatcher(launchControlMidiChannel, trackFocusButtonCC[channelIndex]));
-         // knob.setBinding(track.sendBank().getItemAt(0).value());
-         // this->bindButtonToSendformat("trackControl__ch%d", channelIndex)
-         bindButtonToSend(
+         // Assign buttons to remote controls 3-4 as momentary buttons.
+         // When button is down, control is at max.
+         // Can be used for smart (custom mappable) sends/stabs.
+         // Or map to actual sends for previous behaviour.
+         bindButtonToRemoteControl(
             format("trackFocus__ch%d", channelIndex),
             channelIndex,
-            track,
-            0,
+            remoteControlsPage.getParameter(2),
             launchControlMidiChannel,
             trackFocusButtonNote[channelIndex]
          );
-         bindButtonToSend(
+         paramIndex++;
+         bindButtonToRemoteControl(
             format("trackFControl__ch%d", channelIndex),
             channelIndex,
-            track,
-            1,
+            remoteControlsPage.getParameter(3),
             launchControlMidiChannel,
             trackControlButtonNote[channelIndex]
          );
@@ -112,6 +111,29 @@ public class LaunchControlXLExtension extends ControllerExtension
 
       // TODO: navigate up/down tracks (1 or bankwise)
       // TODO: allow selecting focus track – e.g. shift + track select (will need a shift mode)
+   }
+
+
+   private void bindButtonToRemoteControl(String hardwareName, int channelIndex, RemoteControl remoteControl, int midiChannel, int noteNumber)
+   {
+      final ControllerHost host = getHost();
+      MidiIn midiIn = host.getMidiInPort(0);
+
+      HardwareButton button = hardwareSurface.createHardwareButton(hardwareName);
+      button.pressedAction().setActionMatcher(midiIn.createNoteOnActionMatcher(midiChannel, noteNumber));
+      button.releasedAction().setActionMatcher(midiIn.createNoteOffActionMatcher(midiChannel, noteNumber));
+      button.pressedAction().setBinding(host.createAction(
+         () -> {
+            remoteControl.value().set(1.0);
+         },
+         () -> format("setRemote_%s_Max", remoteControl.name()))
+      );
+      button.releasedAction().setBinding(host.createAction(
+         () -> {
+            remoteControl.value().set(0.0);
+         },
+         () -> format("setRemote_%s_Min", remoteControl.name()))
+      );
    }
 
    private void bindButtonToSend(String hardwareName, int channelIndex, Track track, int sendIndex, int midiChannel, int noteNumber)
