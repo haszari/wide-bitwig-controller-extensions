@@ -32,4 +32,4 @@ Early days.
 #### Novation LaunchControl XL
 - Fader is channel fader.
 - Knobs are first three remote controls.
-- Channel buttons are first 2 sends (momentary - hold down to send signal to aux).
+- Channel buttons are remote controls 3 & 4 (top right). These are momentary "stab" buttons; hold down to set remote to max. Can be used for custom sends or to enable an effect (etc).
