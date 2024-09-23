@@ -289,10 +289,14 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
       final int numTracks = 4;
       final int numSends = 0;
       final int numScenes = 4;
-      TrackBank tracks = host.createMainTrackBank(
+      // TrackBank of excluding tracks nested in groups …
+      // … but including send / effect / master tracks.
+      // This means we can control group tracks from KontrolF1, even if we expand the tracks in the group.
+      TrackBank tracks = host.createTrackBank(
             numTracks,
             numSends,
-            numScenes);
+            numScenes,
+            false);
       // Show the highlight rect in session view so we know which clips we're pointing
       // at.
       tracks.setShouldShowClipLauncherFeedback(true);
@@ -305,14 +309,14 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
       final int faderCCCh1 = 6; // CC6 - CC9
       final int gridNoteTopLeft = 36; // Ch1 36…39, Ch2 40…43, Ch3 44…47, Ch4 48…51
 
-      // Loop over first 8 channels, assigning knob to first macro param and fader to
+      // Loop over each channel, assigning knob to first macro param and fader to
       // level fader.
       IntStream.range(0, numTracks).forEach(channelIndex -> {
          Track track = tracks.getItemAt(channelIndex);
 
          // Get the first page of remote controls (aka macros) for the track.
          // Future: get a named "Perform" page if available.
-         final int maxParams = 8; // we'll have access to full page of 8 but only access knobs 1 and 5 (0/4)
+         final int maxParams = 8; // we'll have access to full page of 8 but only access some of them
          CursorRemoteControlsPage remoteControlsPage = track.createCursorRemoteControlsPage(maxParams);
 
          int paramIndex = 0;
