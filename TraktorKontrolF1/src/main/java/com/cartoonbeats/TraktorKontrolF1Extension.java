@@ -269,6 +269,7 @@ class ClipPadStateSupplier implements Supplier<ClipPadState> {
 
 }
 
+
 public class TraktorKontrolF1Extension extends ControllerExtension {
    protected TraktorKontrolF1Extension(final TraktorKontrolF1ExtensionDefinition definition,
          final ControllerHost host) {
@@ -287,7 +288,7 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
 
       // Get a reference to the tracks we want to control.
       final int numTracks = 4;
-      final int numSends = 0;
+      final int numSends = 2;
       final int numScenes = 4;
       // TrackBank of excluding tracks nested in groups …
       // … but including send / effect / master tracks.
@@ -334,6 +335,17 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
                midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, faderCCCh1 + channelIndex));
          knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
 
+         final int ch1StopButtonCC = 37;
+         final String stopButtonName = format("STOP_BUTTON_%d", channelIndex);
+         // Map stop cc-button to momentary "stab" first send level.
+         knob = hardwareSurface.createAbsoluteHardwareKnob(stopButtonName);
+         knob.setAdjustValueMatcher(
+               midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, ch1StopButtonCC + channelIndex));
+         knob.setBinding(track.sendBank().getItemAt(0).value());
+         // ALSO map stop cc-button to momentary "stab" of remote control 3, for custom bindings.
+         paramIndex = 2;
+         knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
+
          // Assign 4x4 grid buttons to clip launcher slots.
          final int channelGridNoteStart = channelIndex * numTracks;
          IntStream.range(0, numScenes).forEach(rowIndex -> {
@@ -362,14 +374,6 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
                ClipPadState.updateHardware((ClipPadState)state, midiOut, kontrolF1MidiChannel, midiNote, host);
             });
          });
-
-         // Map stop button row to stop whatever clip is playing in that channel.
-         final int ch1StopButtonCC = 37;
-         HardwareButton quantButton = hardwareSurface.createHardwareButton(format("STOP_BUTTON_%d", channelIndex));
-         quantButton.pressedAction().setActionMatcher(
-               midiIn.createCCActionMatcher(kontrolF1MidiChannel, ch1StopButtonCC + channelIndex, 127));
-         quantButton.pressedAction().setBinding(track.stopAction());
-
       });
 
       // Navigate up/down & left/right 4x4 grid pages.
