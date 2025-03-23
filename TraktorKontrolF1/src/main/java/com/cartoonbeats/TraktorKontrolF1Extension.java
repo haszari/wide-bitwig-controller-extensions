@@ -344,7 +344,7 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
          knob.setBinding(track.sendBank().getItemAt(0).value());
          // ALSO map stop cc-button to momentary "stab" of remote control 3, for custom bindings.
          paramIndex = 2;
-         knob.addBinding(remoteControlsPage.getParameter(paramIndex).value());
+         knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
 
          // Assign 4x4 grid buttons to clip launcher slots.
          final int channelGridNoteStart = channelIndex * numTracks;
