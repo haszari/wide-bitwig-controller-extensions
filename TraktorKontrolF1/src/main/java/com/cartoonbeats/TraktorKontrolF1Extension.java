@@ -365,10 +365,10 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
 
          // Map stop button row to stop whatever clip is playing in that channel.
          final int ch1StopButtonCC = 37;
-         HardwareButton quantButton = hardwareSurface.createHardwareButton(format("STOP_BUTTON_%d", channelIndex));
-         quantButton.pressedAction().setActionMatcher(
+         HardwareButton stopButton = hardwareSurface.createHardwareButton(format("STOP_BUTTON_%d", channelIndex));
+         stopButton.pressedAction().setActionMatcher(
                midiIn.createCCActionMatcher(kontrolF1MidiChannel, ch1StopButtonCC + channelIndex, 127));
-         quantButton.pressedAction().setBinding(track.stopAction());
+               stopButton.pressedAction().setBinding(track.stopAction());
 
       });
 
