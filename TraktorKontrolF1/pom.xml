@@ -5,7 +5,7 @@
 	<groupId>com.cartoonbeats</groupId>
 	<artifactId>kontrol-f1</artifactId>
 	<packaging>jar</packaging>
-	<name>Hello World</name>
+	<name>Kontrol F1 Bitwig Controller Extension</name>
 	<version>0.1</version>
 
 	<repositories>
@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>com.bitwig</groupId>
 			<artifactId>extension-api</artifactId>
-			<version>18</version>
+			<version>22</version>
 		</dependency>
 	</dependencies>
 
