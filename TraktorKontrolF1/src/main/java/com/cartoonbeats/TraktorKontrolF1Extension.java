@@ -381,6 +381,10 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
          
          // if [conditional for 2-riff mode]
          // Map inner (F1 ch 2 & 3) buttons to remote controls 5-8.
+         // Set their colour to:
+         // - black/off if no param
+         // - half white or colour if param
+         // - bright when button is held (i.e. when param is 1.0)
          // final int channelGridNoteStart = hardwareChannelIndex * numScenes;
          IntStream.range(4, 7).forEach(remoteControlIndex -> {
          });
@@ -413,6 +417,10 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
             // Map stop button row to stop whatever clip is playing in that channel.
             stopTrackAction[channelIndex] = track.stopAction();
             stopButton[channelIndex].pressedAction().setBinding(stopTrackAction[channelIndex]);
+
+            // Future: 
+            // - light up stop (dim red) when channel is playing
+            // - when channel is stopping, light bright red
          }
 
          // Bind the (outer) grid pads to trigger clips, and show clip play state.
