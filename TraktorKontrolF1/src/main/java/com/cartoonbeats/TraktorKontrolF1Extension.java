@@ -12,6 +12,7 @@ import com.bitwig.extension.controller.api.AbsoluteHardwareKnob;
 import com.bitwig.extension.controller.api.ClipLauncherSlot;
 import com.bitwig.extension.controller.api.ControllerHost;
 import com.bitwig.extension.controller.api.CursorRemoteControlsPage;
+import com.bitwig.extension.controller.api.HardwareActionBindable;
 import com.bitwig.extension.controller.api.HardwareButton;
 import com.bitwig.extension.controller.api.HardwareLightVisualState;
 import com.bitwig.extension.controller.api.HardwareSurface;
@@ -19,7 +20,9 @@ import com.bitwig.extension.controller.api.InternalHardwareLightState;
 import com.bitwig.extension.controller.api.MidiIn;
 import com.bitwig.extension.controller.api.MidiOut;
 import com.bitwig.extension.controller.api.MultiStateHardwareLight;
+import com.bitwig.extension.controller.api.Preferences;
 import com.bitwig.extension.controller.api.SceneBank;
+import com.bitwig.extension.controller.api.SettableEnumValue;
 import com.bitwig.extension.controller.api.Track;
 import com.bitwig.extension.controller.api.TrackBank;
 
@@ -269,16 +272,27 @@ class ClipPadStateSupplier implements Supplier<ClipPadState> {
 
 }
 
-
 public class TraktorKontrolF1Extension extends ControllerExtension {
    protected TraktorKontrolF1Extension(final TraktorKontrolF1ExtensionDefinition definition,
          final ControllerHost host) {
       super(definition, host);
    }
 
+   private final static String STOP_MODE__STOP_CLIPS = "Stop clips";
+   private final static String STOP_MODE__MOMENTARY_SEND = "Momentary send 1";
+
    @Override
    public void init() {
       final ControllerHost host = getHost();
+
+      Preferences prefs = host.getPreferences();
+
+      SettableEnumValue stopButtonPreference = prefs.getEnumSetting(
+         "Stop button behaviour", 
+         "General", 
+         new String[] { STOP_MODE__STOP_CLIPS, STOP_MODE__MOMENTARY_SEND },
+         STOP_MODE__MOMENTARY_SEND
+      );
 
       MidiIn midiIn = host.getMidiInPort(0);
       MidiOut midiOut = host.getMidiOutPort(0);
@@ -310,15 +324,21 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
       final int faderCCCh1 = 6; // CC6 - CC9
       final int gridNoteTopLeft = 36; // Ch1 36…39, Ch2 40…43, Ch3 44…47, Ch4 48…51
 
+      AbsoluteHardwareKnob[] stopMomentaryKnob = new AbsoluteHardwareKnob[4];
+      HardwareButton[] stopButton = new HardwareButton[4];
+      // Get the first page of remote controls (aka macros) for the track.
+      // Future: get a named "Perform" page if available.
+      final int maxParams = 8; // we'll have access to full page of 8 but only access some of them
+      CursorRemoteControlsPage[] remoteControls = new CursorRemoteControlsPage[4];
+      
+      HardwareActionBindable[] stopTrackAction = new HardwareActionBindable[4];
+
       // Loop over each channel, assigning knob to first macro param and fader to
       // level fader.
       IntStream.range(0, numTracks).forEach(channelIndex -> {
          Track track = tracks.getItemAt(channelIndex);
 
-         // Get the first page of remote controls (aka macros) for the track.
-         // Future: get a named "Perform" page if available.
-         final int maxParams = 8; // we'll have access to full page of 8 but only access some of them
-         CursorRemoteControlsPage remoteControlsPage = track.createCursorRemoteControlsPage(maxParams);
+         remoteControls[channelIndex] = track.createCursorRemoteControlsPage(maxParams);
 
          int paramIndex = 0;
          // Assign the knob to the first macro control.
@@ -326,25 +346,37 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
                .createAbsoluteHardwareKnob(format("KNOB__ch%d_%d", channelIndex, paramIndex));
          knob.setAdjustValueMatcher(
                midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, knobCCCh1 + channelIndex));
-         knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
+         knob.setBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
 
          // Assign the fader to the second macro control.
          paramIndex = 1;
          knob = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d_%d", channelIndex, paramIndex));
          knob.setAdjustValueMatcher(
                midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, faderCCCh1 + channelIndex));
-         knob.setBinding(remoteControlsPage.getParameter(paramIndex).value());
+         knob.setBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
 
          final int ch1StopButtonCC = 37;
-         final String stopButtonName = format("STOP_BUTTON_%d", channelIndex);
-         // Map stop cc-button to momentary "stab" first send level.
-         knob = hardwareSurface.createAbsoluteHardwareKnob(stopButtonName);
-         knob.setAdjustValueMatcher(
-               midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, ch1StopButtonCC + channelIndex));
-         knob.setBinding(track.sendBank().getItemAt(0).value());
-         // ALSO map stop cc-button to momentary "stab" of remote control 3, for custom bindings.
-         paramIndex = 2;
-         knob.addBinding(remoteControlsPage.getParameter(paramIndex).value());
+         final String stopKnobName = format("STOP_KNOB_%d", channelIndex);
+
+         // Set up a knob and a button on the stop button, so we can dynamically bind based on config option.
+         stopMomentaryKnob[channelIndex] = hardwareSurface.createAbsoluteHardwareKnob(stopKnobName);
+         stopMomentaryKnob[channelIndex].setAdjustValueMatcher(
+            midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, ch1StopButtonCC + channelIndex));
+         stopButton[channelIndex] = hardwareSurface.createHardwareButton(format("STOP_BUTTON_%d", channelIndex));
+         stopButton[channelIndex].pressedAction().setActionMatcher(
+               midiIn.createCCActionMatcher(kontrolF1MidiChannel, ch1StopButtonCC + channelIndex, 127));
+         if (stopButtonPreference.get().equals(STOP_MODE__MOMENTARY_SEND)) {
+            // Map stop cc-button to momentary "stab" first send level.
+            stopMomentaryKnob[channelIndex].setBinding(track.sendBank().getItemAt(0).value());
+            // ALSO map stop cc-button to momentary "stab" of remote control 3, for custom bindings.
+            paramIndex = 2;
+            stopMomentaryKnob[channelIndex].addBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+         }
+         else {
+            // Map stop button row to stop whatever clip is playing in that channel.
+            stopTrackAction[channelIndex] = track.stopAction();
+            stopButton[channelIndex].pressedAction().setBinding(stopTrackAction[channelIndex]);
+         }
 
          // Assign 4x4 grid buttons to clip launcher slots.
          final int channelGridNoteStart = channelIndex * numTracks;
@@ -400,6 +432,27 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
       HardwareButton revButton = hardwareSurface.createHardwareButton(format("REVERSE_BUTTON"));
       revButton.pressedAction().setActionMatcher(midiIn.createCCActionMatcher(kontrolF1MidiChannel, revButtonCC, 127));
       revButton.pressedAction().setBinding(scenes.scrollPageForwardsAction());
+
+      // Dynamically bind F1 stop button based on user preference:
+      // - Stop clips in channel.
+      // - Momentary stab for first send + remote control 3.
+      stopButtonPreference.addValueObserver(val -> {
+         IntStream.range(0, numTracks).forEach(channelIndex -> {
+            Track track = tracks.getItemAt(channelIndex);
+
+            if (val == STOP_MODE__MOMENTARY_SEND) {
+               stopButton[channelIndex].pressedAction().clearBindings();
+               stopMomentaryKnob[channelIndex].setBinding(track.sendBank().getItemAt(0).value());
+               // ALSO map stop cc-button to momentary "stab" of remote control 3, for custom bindings.
+               int paramIndex = 2;
+               stopMomentaryKnob[channelIndex].addBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+            }
+            else {
+               stopMomentaryKnob[channelIndex].clearBindings();
+               stopButton[channelIndex].pressedAction().setBinding(stopTrackAction[channelIndex]);
+            }
+         });
+      });
    }
 
    @Override
