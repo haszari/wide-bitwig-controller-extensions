@@ -349,20 +349,30 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
 
          remoteControls[channelIndex] = track.createCursorRemoteControlsPage(maxParams);
 
+         // Make sure send bank items are marked as interested so they're available
+         if (track.sendBank().getItemAt(0) != null) {
+            track.sendBank().getItemAt(0).exists().markInterested();
+            track.sendBank().getItemAt(0).value().markInterested();
+         }
+
          int paramIndex = 0;
          // Assign the knob to the first macro control.
          AbsoluteHardwareKnob knob = hardwareSurface
                .createAbsoluteHardwareKnob(format("KNOB__ch%d_%d", channelIndex, paramIndex));
          knob.setAdjustValueMatcher(
                midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, knobCCCh1 + hardwareChannelIndex));
-         knob.setBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+         if (remoteControls[channelIndex].getParameter(paramIndex) != null) {
+            knob.setBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+         }
 
          // Assign the fader to the second macro control.
          paramIndex = 1;
          knob = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d_%d", channelIndex, paramIndex));
          knob.setAdjustValueMatcher(
                midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, faderCCCh1 + hardwareChannelIndex));
-         knob.setBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+         if (remoteControls[channelIndex].getParameter(paramIndex) != null) {
+            knob.setBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+         }
 
          
          // if [conditional for 2-riff mode]
@@ -372,12 +382,16 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
          knob = hardwareSurface.createAbsoluteHardwareKnob(format("KNOB__ch%d_%d", channelIndex, paramIndex));
          knob.setAdjustValueMatcher(
                midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, knobCCCh1 + hardwareChannelIndexForExtraRemotes));
-         knob.setBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+         if (remoteControls[channelIndex].getParameter(paramIndex) != null) {
+            knob.setBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+         }
          paramIndex = 3;
          knob = hardwareSurface.createAbsoluteHardwareKnob(format("FADER__ch%d_%d", channelIndex, paramIndex));
          knob.setAdjustValueMatcher(
                midiIn.createAbsoluteCCValueMatcher(kontrolF1MidiChannel, faderCCCh1 + hardwareChannelIndexForExtraRemotes));
-         knob.setBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+         if (remoteControls[channelIndex].getParameter(paramIndex) != null) {
+            knob.setBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+         }
          
          // if [conditional for 2-riff mode]
          // Map inner (F1 ch 2 & 3) buttons to remote controls 5-8.
@@ -408,15 +422,21 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
                midiIn.createCCActionMatcher(kontrolF1MidiChannel, ch1StopButtonCC + hardwareChannelIndex, 127));
          if (stopButtonPreference.get().equals(STOP_MODE__MOMENTARY_SEND)) {
             // Map stop cc-button to momentary "stab" first send level.
-            stopMomentaryKnob[channelIndex].setBinding(track.sendBank().getItemAt(0).value());
+            if (track.sendBank() != null && track.sendBank().getItemAt(0) != null && track.sendBank().getItemAt(0).value() != null) {
+               stopMomentaryKnob[channelIndex].setBinding(track.sendBank().getItemAt(0).value());
+            }
             // ALSO map stop cc-button to momentary "stab" of remote control 3, for custom bindings.
             paramIndex = 2;
-            stopMomentaryKnob[channelIndex].addBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+            if (remoteControls[channelIndex].getParameter(paramIndex) != null) {
+               stopMomentaryKnob[channelIndex].addBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+            }
          }
          else {
             // Map stop button row to stop whatever clip is playing in that channel.
             stopTrackAction[channelIndex] = track.stopAction();
-            stopButton[channelIndex].pressedAction().setBinding(stopTrackAction[channelIndex]);
+            if (stopTrackAction[channelIndex] != null) {
+               stopButton[channelIndex].pressedAction().setBinding(stopTrackAction[channelIndex]);
+            }
 
             // Future: 
             // - light up stop (dim red) when channel is playing
@@ -488,10 +508,14 @@ public class TraktorKontrolF1Extension extends ControllerExtension {
 
             if (val == STOP_MODE__MOMENTARY_SEND) {
                stopButton[channelIndex].pressedAction().clearBindings();
-               stopMomentaryKnob[channelIndex].setBinding(track.sendBank().getItemAt(0).value());
+               if (track.sendBank() != null && track.sendBank().getItemAt(0) != null && track.sendBank().getItemAt(0).value() != null) {
+                  stopMomentaryKnob[channelIndex].setBinding(track.sendBank().getItemAt(0).value());
+               }
                // ALSO map stop cc-button to momentary "stab" of remote control 3, for custom bindings.
                int paramIndex = 2;
-               stopMomentaryKnob[channelIndex].addBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+               if (remoteControls[channelIndex].getParameter(paramIndex) != null) {
+                  stopMomentaryKnob[channelIndex].addBinding(remoteControls[channelIndex].getParameter(paramIndex).value());
+               }
             }
             else {
                stopMomentaryKnob[channelIndex].clearBindings();
